@@ -20,7 +20,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
             .app_data(web::Data::new(Server {}))
-            .service(web::scope("/logs").route("/", web::get().to(handle_get_logs)))
+            .service(web::scope("/logs").route("", web::get().to(handle_get_logs)))
     })
     .bind(("localhost", 3000))?
     .run()
