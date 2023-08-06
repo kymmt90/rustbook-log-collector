@@ -11,3 +11,4 @@ log = "0.4"
 env_logger = "0.9"
 api = {path = "../api"}
 diesel = { version = "2.1.0", features = ["sqlite", "r2d2", "chrono"] }
+dotenv = "0.15.0"
