@@ -4,6 +4,12 @@ use actix_web::HttpServer;
 
 mod handlers;
 
+#[macro_use]
+extern crate diesel;
+
+mod model;
+mod schema;
+
 #[derive(Clone)]
 pub struct Server {}
 
