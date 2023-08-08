@@ -40,9 +40,11 @@ async fn main() -> std::io::Result<()> {
     use crate::handlers::*;
 
     HttpServer::new(|| {
-        App::new()
-            .app_data(web::Data::new(Server::new()))
-            .service(web::scope("/logs").route("", web::get().to(handle_get_logs)))
+        App::new().app_data(web::Data::new(Server::new())).service(
+            web::scope("/logs")
+                .route("", web::get().to(handle_get_logs))
+                .route("", web::post().to(handle_post_logs)),
+        )
     })
     .bind(("localhost", 3000))?
     .run()

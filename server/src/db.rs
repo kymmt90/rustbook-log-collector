@@ -1,7 +1,9 @@
 use chrono::{DateTime, Utc};
-use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl, SqliteConnection};
+use diesel::{
+    insert_into, ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl, SqliteConnection,
+};
 
-use crate::model::Log;
+use crate::model::{Log, NewLog};
 
 pub fn logs(
     conn: &mut SqliteConnection,
@@ -19,4 +21,10 @@ pub fn logs(
     }
 
     query.order(timestamp.asc()).load(conn)
+}
+
+pub fn insert_log(conn: &mut SqliteConnection, log: &NewLog) -> QueryResult<Log> {
+    use crate::schema::logs::dsl::*;
+
+    insert_into(logs).values(log).get_result(conn)
 }
