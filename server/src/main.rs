@@ -35,6 +35,12 @@ impl Server {
     }
 }
 
+impl Default for Server {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     use crate::handlers::*;
