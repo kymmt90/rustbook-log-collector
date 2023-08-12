@@ -1,12 +1,16 @@
+use std::io::BufReader;
+
+use actix_multipart::form::{tempfile::TempFile, MultipartForm};
 use actix_web::{
     error,
     web::{Data, Json, Query},
     HttpResponse, Responder, Result,
 };
 use chrono::{DateTime, Utc};
+use itertools::Itertools;
 
-use crate::Server;
 use crate::{db, model::NewLog};
+use crate::{db::insert_logs, Server};
 
 pub async fn handle_get_logs(
     data: Data<Server>,
@@ -50,4 +54,47 @@ pub async fn handle_post_logs(
     }
 
     Ok(HttpResponse::Accepted().finish())
+}
+
+#[derive(MultipartForm)]
+pub struct UploadedCsv {
+    file: TempFile,
+}
+
+pub async fn handle_post_csv(
+    data: Data<Server>,
+    form: MultipartForm<UploadedCsv>,
+) -> Result<impl Responder> {
+    const MAX_FILE_SIZE: u64 = 1024 * 1024 * 10; // 10 MB
+
+    match form.file.size {
+        0 => return Ok(HttpResponse::BadRequest().finish()),
+        length if length > MAX_FILE_SIZE.try_into().unwrap() => {
+            return Ok(HttpResponse::BadRequest().finish())
+        }
+        _ => {}
+    }
+
+    let mut conn = data.establish_database_connection();
+    let buf = BufReader::new(form.file.file.as_file());
+    let in_logs = csv::Reader::from_reader(buf).into_deserialize::<::api::Log>();
+
+    for logs in &in_logs.chunks(1000) {
+        let logs = logs
+            .filter_map(Result::ok)
+            .map(|log| NewLog {
+                user_agent: log.user_agent,
+                response_time: log.response_time,
+                timestamp: log.timestamp.naive_utc(),
+            })
+            .collect_vec();
+
+        let result = insert_logs(&mut conn, &logs);
+
+        if result.is_err() {
+            return Err(error::ErrorInternalServerError("internal server error"));
+        }
+    }
+
+    Ok(HttpResponse::Ok().finish())
 }

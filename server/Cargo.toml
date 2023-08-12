@@ -13,3 +13,6 @@ api = {path = "../api"}
 diesel = { version = "2.1.0", features = ["sqlite", "r2d2", "chrono", "returning_clauses_for_sqlite_3_35"] }
 dotenv = "0.15.0"
 chrono = "0.4.26"
+actix-multipart = "0.6.0"
+csv = "1.2.2"
+itertools = "0.11"

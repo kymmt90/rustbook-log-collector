@@ -28,3 +28,9 @@ pub fn insert_log(conn: &mut SqliteConnection, log: &NewLog) -> QueryResult<Log>
 
     insert_into(logs).values(log).get_result(conn)
 }
+
+pub fn insert_logs(conn: &mut SqliteConnection, logs: &[NewLog]) -> QueryResult<usize> {
+    use crate::schema::logs::dsl;
+
+    insert_into(dsl::logs).values(logs).execute(conn)
+}
