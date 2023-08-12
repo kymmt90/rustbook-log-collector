@@ -53,7 +53,11 @@ async fn main() -> std::io::Result<()> {
                     .route("", web::get().to(handle_get_logs))
                     .route("", web::post().to(handle_post_logs)),
             )
-            .service(web::scope("/csv").route("", web::post().to(handle_post_csv)))
+            .service(
+                web::scope("/csv")
+                    .route("", web::get().to(handle_get_csv))
+                    .route("", web::post().to(handle_post_csv)),
+            )
     })
     .bind(("localhost", 3000))?
     .run()

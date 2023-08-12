@@ -98,3 +98,33 @@ pub async fn handle_post_csv(
 
     Ok(HttpResponse::Ok().finish())
 }
+
+pub async fn handle_get_csv(
+    data: Data<Server>,
+    range: Query<api::logs::get::Query>,
+) -> Result<impl Responder> {
+    let mut conn = data.establish_database_connection();
+    let logs = db::logs(&mut conn, range.from, range.until);
+
+    if logs.is_err() {
+        return Err(error::ErrorInternalServerError("internal server error"));
+    }
+
+    let v = Vec::new();
+    let mut w = csv::Writer::from_writer(v);
+
+    for log in logs.unwrap().into_iter().map(|log| api::Log {
+        user_agent: log.user_agent,
+        response_time: log.response_time,
+        timestamp: DateTime::from_utc(log.timestamp, Utc),
+    }) {
+        let result = w.serialize(log);
+
+        if result.is_err() {
+            return Err(error::ErrorInternalServerError("internal server error"));
+        }
+    }
+    let csv = w.into_inner().unwrap();
+
+    Ok(HttpResponse::Ok().append_header(("Content-Type", "text/csv")).body(csv))
+}
