@@ -1,5 +1,6 @@
 use std::env;
 
+use actix_web::middleware;
 use actix_web::web;
 use actix_web::App;
 use actix_web::HttpServer;
@@ -47,6 +48,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         App::new()
+            .wrap(middleware::Compress::default())
             .app_data(web::Data::new(Server::new()))
             .service(
                 web::scope("/logs")
